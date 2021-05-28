@@ -4,6 +4,6 @@ VIDEOPATH="/home/pi/OC-DigitalSignage/video"                  # path for fetch t
 fetchLog="/home/pi/OC-DigitalSignage/fetch.log"               # path for logging
 TIMESTAMP=`date "+%Y-%m-%d %H:%M:%S"`               # timestamp formatting for logger
 URL="http://34.193.150.151/pi_callHome.php?id="     # url to server for requests
-AUTHOR="Eric Bradshaw bradshaw@omnicommander.com"      # author
-PI_UID="OC-DeploymentScreen"   	                    # ID for this PI machine
-VERSION=1.6                                        # revision number
+AUTHOR="Eric Bradshaw bradshaw@omnicommander.com"   # author
+PI_UID=""   	                                    # ID for this PI machine
+VERSION=1.7                                         # revision number
