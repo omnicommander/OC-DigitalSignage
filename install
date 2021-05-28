@@ -11,42 +11,43 @@ fi
 cd /
 
 # self-update
-#ech# o
-# while true; do
-# 	read -p "Can I please run my self-update? (y/n)" yn
-#     case $yn in
-#         [Yy]* ) apt update && apt dist-upgrade -y; break;;
-#         [Nn]* ) printf "\n Hey! I may not run correctly, so you had your chance and you blew it.\n"; break;;
-#         * ) printf "Please answer y or n or I will ask you again, and you don't want me wasting your time.\n.";;
-#     esac
-# done
+#echo
+#while true; do
+#	read -p "Can I please run my self-update? (y/n)" yn
+#    case $yn in
+#        [Yy]* ) apt update && apt dist-upgrade -y; break;;
+#        [Nn]* ) printf "\n Hey! I may not run correctly, so you had your chance and you blew it.\n"; break;;
+#        * ) printf "Please answer y or n or I will ask you again, and you don't want me wasting your time.\n.";;
+#    esac
+#done
 
-# echo
+echo
 
 # test for jq
-#command -v jq >/dev/null 2>&1 || {
- #   printf >&2 "I require jq but it's not installed, so I am installing it now.\n";
+command -v jq >/dev/null 2>&1 || {
+    printf >&2 "I require jq but it's not installed, so I am installing it now.\n";
     # install jq for the json
-  #  apt-get install jq -y
-#}
+    apt-get install jq -y
+}
 # test for youtube-dl
-#command -v youtube-dl >/dev/null 2>&1 || {
-#   printf >&2 "I require youtube-dl but it's not installed, so I am installing it now.\n";
+command -v youtube-dl >/dev/null 2>&1 || {
+    printf >&2 "I require youtube-dl but it's not installed, so I am installing it now.\n";
 
     # install youtube-dl
-#    apt install youtube-dl
+    curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
 
     # make it executable so we can run it
-#    chmod a+rx /usr/local/bin/youtube-dl
-#}
+    chmod a+rx /usr/local/bin/youtube-dl
+}
 
 # test for bc
-#command -v bc >/dev/null 2&1 || {
-#    printf >&2 "I require bc but it is not installed, so I am installing it now. \n";
-#    apt-get install bc -y
-#}
+command -v bc >/dev/null 2&1 || {
+    printf >&2 "I require bc but it is not installed, so I am installing it now. \n";
+    apt-get install bc -y
+}
 
-#printf "*** Dependencies succesfully installed. Now installing configuration files ***\n";
+printf "*** Dependencies succesfully installed. Now installing configuration files ***\n";
+
 #echo
 #printf "Installing Raspian boot configuration files...\n"
 #tar -xvf /home/pi/OC-DigitalSignage/booter.tar
@@ -54,24 +55,25 @@ cd /
 
 # Begin user configuration session
 
-# while true; do
-#     case $yn in
-#         [Yy]* ) nano /home/pi/OC-DigitalSignage/config.sh; break;;
-#         [Nn]* ) printf "You can always edit the config.sh anytime.\nBye for now!"; break;;
-#         * ) printf "Please answer yes or no or I will ask you again.\n";;
-#     esac
-# done
-# 
-# # Configure WIFI SSID and Password (sudo)
-# printf
-# read -p "Enter WIFI SSID: " SSID
-# read -p "Enter WIFI PASSWORD: " PASSWORD
-# 
+while true; do
+	read -p "Do you wish to set the PI_UID now? (y/n)" yn
+    case $yn in
+        [Yy]* ) nano /home/pi/OC-DigitalSignage/config.sh; break;;
+        [Nn]* ) printf "You can always edit the config.sh anytime.\nBye for now!"; break;;
+        * ) printf "Please answer yes or no or I will ask you again.\n";;
+    esac
+done
+
+# Configure WIFI SSID and Password (sudo)
+#printf
+#read -p "Enter WIFI SSID: " SSID
+#read -p "Enter WIFI PASSWORD: " PASSWORD
+
 # overwrite existing wpa configuration file
-# printf "ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev\n" > /etc/wpa_supplicant/wpa_supplicant.conf
-# printf "update_config=1\n" >> /etc/wpa_supplicant/wpa_supplicant.conf
-# printf "country=\"US\"\n\n" >> /etc/wpa_supplicant/wpa_supplicant.conf
-# printf "network={\nssid=\"${SSID}\"\npsk=\"${PASSWORD}\"\nkey_mgmt=WPA-PSK\n}\n" >> /etc/wpa_supplicant/wpa_supplicant.conf
+#printf "ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev\n" > /etc/wpa_supplicant/wpa_supplicant.conf
+#printf "update_config=1\n" >> /etc/wpa_supplicant/wpa_supplicant.conf
+#printf "country=\"US\"\n\n" >> /etc/wpa_supplicant/wpa_supplicant.conf
+#printf "network={\nssid=\"${SSID}\"\npsk=\"${PASSWORD}\"\nkey_mgmt=WPA-PSK\n}\n" >> /etc/wpa_supplicant/wpa_supplicant.conf
 
 
 # turn off screen blanking
@@ -82,27 +84,48 @@ cd /
 
 # configure cron for boot to run as pi
 # change to pi user for the following EOF
-sudo -i -u pi bash << EOF
-    # export current crontab to mycron
-    crontab -l > mycron
+#!/usr/bin/env bash
+# =================================
+# sudo ./patch
+# =================================
 
-    # write new mycron --
-    # Fetch on boot timestamp to last_cron
-    echo "@reboot /home/pi/OC-DigitalSignage/fetch && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron" > mycron
-    
-    # Every 15min push heartbeat and timestamp to last_cron
-    echo "*/15 * * * * /home/pi/OC-DigitalSignage/push && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron" >> mycron
+sudo sh -c 'cat <<EOF > /var/spool/cron/crontabs/root
 
-    # Every morning at 4am reboot
-    echo "59 3 * * * sudo /sbin/shutdown -r now" >> mycron
-
-    # install new cron file
-    crontab mycron
-    rm mycron
-EOF 
+# Edit this file to introduce tasks to be run by cron.
+#
+# Each task to run has to be defined through a single line
+# indicating with different fields when the task will be run
+# and what command to run for the task
+#
+# To define the time you can provide concrete values for
+# minute (m), hour (h), day of month (dom), month (mon),
+# and day of week (dow) or use* in these fields (for any).
+#
+# Notice that tasks will be started based on the crons system
+# daemons notion of time and timezones.
+#
+# Output of the crontab jobs (including errors) is sent through
+# email to the user the crontab file belongs to (unless redirected).
+#
+# For example, you can run a backup of all your user accounts
+# at 5 a.m every week with:
+# 0 5 * * 1 tar -zcf /var/backups/home.tgz /home/
+#
+# For more information see the manual pages of crontab(5) and cron(8)
+#
+# m h  dom mon dow   command
+# write new mycron --
+# Fetch on boot timestamp to last_cron
+@reboot /home/pi/OC-DigitalSignage/fetch && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron > mycron
+*/15 * * * * /home/pi/OC-DigitalSignage/push && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron
+59 7 * * * sudo /sbin/shutdown -r now && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron
+59 11 * * * sudo /sbin/shutdown -r now && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron
+59 4 * * * sudo /sbin/shutdown -r now && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron
+EOF'
+sudo /etc/init.d/cron restart
 # exit out
-printf "\nWell done, young Commander!\n"
-printf "Installation is now complete. Please reboot to begin use, and be patient on reboot as I have to download video files on boot.\n"
-printf "I will begin playing the videos in a loop once he download completes."
+printf "\nWell done, young COMMANDO!!\n"
+printf "Device Update Is Now Complete\n"
+
 
 exit 0;
