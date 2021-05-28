@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# Lets grab some config data
+source /home/pi/OC-DigitalSignage/config.sh
+
+current_dt="`date "+%Y-%m-%d %H:%M:%S"`";
+
+# serial id of PI
+serialId=$(cat /proc/cpuinfo | grep Serial | cut -d ' ' -f 2)
+
+#printf "The serialId is ${serialId}\n"
+
+# Celcius of CPU
+tempC=$(vcgencmd measure_temp | egrep -o '[0-9]*\.[0-9]*')
+
+# Farenheit of CPU
+tempF=$(echo "scale=2; 1.8 *$tempC + 32" | bc)
+
+# CPU utilization pecentiles
+cpu=`grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage "%"}'`
+
+# How much storage is being used?
+storageUsed=`du -sh`
+
+# Available storage left
+storageAvail=$(df -h | awk '$6 == "/" {print $4}')
+
+# Show ls of video directory
+lsVideo=($(ls -ls $VIDEOPATH | tail -n +2 | awk '{print $10}'))
+
+# Read json/file.json for current Video ID's we have
+jsonInv=( $(jq -r '.[].youtube_id' $JSONPATH/file.json ) )
+
+# Capture our IP address
+host_ip=$(hostname  -I | cut -f1 -d' ')
+
+# Can we grab Wifi shit? If it's configured then we should get it from the conf
+ssid=$(awk -F "[{}]" '/"/ { print $1 }' /etc/wpa_supplicant/wpa_supplicant.conf)
+wifi=${ssid[@]//\"/}
+
+# is mpv running?
+SERVICE="mpv"
+if pgrep -x "$SERVICE" > /dev/null
+then
+    mpvserviceStatus="running"
+    else
+    mpvserviceStatus="stopped"
+ fi
+
+# Uptime since
+uptime=$(uptime -s)
+
+
+# Make sure our cron is running, get last ran timestamp
+while IFS= read -r line
+do
+    last_cron="$line"
+done < "/home/pi/OC-DigitalSignage/last_cron"
+
+# Build an arch for through we will walk a free man
+object='{
+         "timestamp": "'"$current_dt"'",
+          "PI_UID": "'"${PI_UID}"'",
+          "serialId" : "'"${serialId}"'",
+          "environmental" :{
+                "tempC": "'"$tempC"'",
+                "tempF": "'"$tempF"'",
+                "cpu_percent": "'"$cpu"'",
+                "storageUsed": "'"${storageUsed::-2}"'",
+                "storageAvail": "'"$storageAvail"'"
+          },
+          "physical" : {
+                "lsVideo": "'"${lsVideo[@]}"'",
+                "jsonInv": "'"${jsonInv[@]}"'"
+          },
+          "pi-config" : {
+                "host_ip": "'"${host_ip}"'",
+                "WIFI": "'"${wifi}"'",
+                "version" : "'"$VERSION"'"
+            },
+            "services" :
+            {
+                "uptime_since" : "'"$uptime"'",
+                "last_cron" : "'"$last_cron"'",
+                "vlc" : "'"$mpvserviceStatus"'"
+            }
+        }'
+
+# Post our object to the server for capture.
+curl -H "Content-Type: application/json" -X POST http://34.193.150.151/dat-receive.php --data "$object"
+
+exit 0;
