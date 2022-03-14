@@ -116,11 +116,10 @@ sudo sh -c 'cat <<EOF > /var/spool/cron/crontabs/root
 # m h  dom mon dow   command
 # write new mycron --
 # Fetch on boot timestamp to last_cron
-@reboot /home/pi/OC-DigitalSignage/fetch && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron > mycron
+#@reboot /home/pi/OC-DigitalSignage/fetch && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron > mycron
+
 */15 * * * * /home/pi/OC-DigitalSignage/push && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron
-59 7 * * * sudo /sbin/shutdown -r now && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron
-59 11 * * * sudo /sbin/shutdown -r now && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron
-59 4 * * * sudo /sbin/shutdown -r now && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron
+0 4 * * * sudo /sbin/shutdown -r now && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron
 EOF'
 sudo /etc/init.d/cron restart
 # exit out
