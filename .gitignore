@@ -4,3 +4,6 @@ json/
 .vscode/
 last_cron
 venv
+__pycache__
+videos/
+playlist.txt
