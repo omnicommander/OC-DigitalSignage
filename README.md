@@ -1,1 +1,1 @@
-# OC-DigitalSignage-Current
+# OC-DigitalSignage
