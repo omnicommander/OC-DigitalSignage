@@ -38,7 +38,7 @@ echo "@/home/pi/OC-DigitalSignage/fetch" >> /etc/xdg/lxsession/LXDE-pi/autostart
 apt-get update
 
 # install necessary packages
-apt-get install jq youtube-dl bc mpv
+apt-get install jq youtube-dl bc mpv -Y
 
 read -p "Restart? (y/n) " yn
 case $yn in
