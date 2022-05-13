@@ -7,4 +7,4 @@ TIMESTAMP=`date "+%Y-%m-%d %H:%M:%S"`               # timestamp formatting for l
 URL="https://3.17.246.205/pi_callHome.php?id="
 AUTHOR="Eric Bradshaw bradshaw@omnicommander.com"   # author
 PI_UID="OC-ConferenceRoom"   	                                    # ID for this PI machine
-VERSION=1.7                                         # revision number
+VERSION=1.7.1                                        # revision number
