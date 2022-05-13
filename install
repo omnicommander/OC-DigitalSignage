@@ -1,130 +1,48 @@
 #!/usr/bin/env bash
-# =================================
-# sudo ./install
-# =================================
+
+# make sure this script is run with sudo
 if [ "$EUID" -ne 0 ]
-  then printf "Please run install with sudo!  sudo ./install "
+  then printf "Use sudo to run this script.\n"
   exit
 fi
 
 # go to root directory
 cd /
 
-# self-update
-#echo
-#while true; do
-#	read -p "Can I please run my self-update? (y/n)" yn
-#    case $yn in
-#        [Yy]* ) apt update && apt dist-upgrade -y; break;;
-#        [Nn]* ) printf "\n Hey! I may not run correctly, so you had your chance and you blew it.\n"; break;;
-#        * ) printf "Please answer y or n or I will ask you again, and you don't want me wasting your time.\n.";;
-#    esac
-#done
+source /home/pi/OC-DigitalSignage/config.sh
 
-echo
+# create necessary files and directories
+# NOTE: this does not use the config variables
+mkdir "$JSONPATH"
+mkdir "$VIDEOPATH"
+touch /home/pi/OC-DigitalSignage/{playlist.txt,fetch.log}
+touch "$JSONPATH/file.json"
 
-# test for jq
-command -v jq >/dev/null 2>&1 || {
-    printf >&2 "I require jq but it's not installed, so I am installing it now.\n";
-    # install jq for the json
-    apt-get install jq -y
-}
-# test for youtube-dl
-command -v youtube-dl >/dev/null 2>&1 || {
-    printf >&2 "I require youtube-dl but it's not installed, so I am installing it now.\n";
+# make sure the pi user owns all the new files
+chown -R pi:pi /home/pi/OC-DigitalSignage/
 
-    # install youtube-dl
-    curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
+# begin user configuration session
+read -p "Do you wish to edit the config? (y/n) " yn
+case $yn in
+    [Yy]* ) nano /home/pi/OC-DigitalSignage/config.sh;
+esac
 
-    # make it executable so we can run it
-    chmod a+rx /usr/local/bin/youtube-dl
-}
+# configure crontab 
+# write directly to /var/spool/cron/crontabs/root if this doesn't work
+(crontab -u root; echo "*/15 * * * * /home/pi/OC-DigitalSignage/push && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron\n0 4 * * * sudo /sbin/shutdown -r now && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron\n") | crontab -
 
-# test for bc
-command -v bc >/dev/null 2&1 || {
-    printf >&2 "I require bc but it is not installed, so I am installing it now. \n";
-    apt-get install bc -y
-}
+# start fetching when the desktop environment loads
+echo "@/home/pi/OC-DigitalSignage/fetch" >> /etc/xdg/lxsession/LXDE-pi/autostart
 
-printf "*** Dependencies succesfully installed. Now installing configuration files ***\n";
+# update package repository
+apt-get update
 
-#echo
-#printf "Installing Raspian boot configuration files...\n"
-#tar -xvf /home/pi/OC-DigitalSignage/booter.tar
-#echo
+# install necessary packages
+apt-get install jq youtube-dl bc mpv
 
-# Begin user configuration session
-
-while true; do
-	read -p "Do you wish to set the PI_UID now? (y/n)" yn
-    case $yn in
-        [Yy]* ) nano /home/pi/OC-DigitalSignage/config.sh; break;;
-        [Nn]* ) printf "You can always edit the config.sh anytime.\nBye for now!"; break;;
-        * ) printf "Please answer yes or no or I will ask you again.\n";;
-    esac
-done
-
-# Configure WIFI SSID and Password (sudo)
-#printf
-#read -p "Enter WIFI SSID: " SSID
-#read -p "Enter WIFI PASSWORD: " PASSWORD
-
-# overwrite existing wpa configuration file
-#printf "ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev\n" > /etc/wpa_supplicant/wpa_supplicant.conf
-#printf "update_config=1\n" >> /etc/wpa_supplicant/wpa_supplicant.conf
-#printf "country=\"US\"\n\n" >> /etc/wpa_supplicant/wpa_supplicant.conf
-#printf "network={\nssid=\"${SSID}\"\npsk=\"${PASSWORD}\"\nkey_mgmt=WPA-PSK\n}\n" >> /etc/wpa_supplicant/wpa_supplicant.conf
-
-
-# turn off screen blanking
-#printf "[Seat:*]"
-#printf "xserver-command=X -s 0 dpms" >> /etc/lightdm/lightdm.conf
-
-
-
-# configure cron for boot to run as pi
-# change to pi user for the following EOF
-#!/usr/bin/env bash
-# =================================
-# sudo ./patch
-# =================================
-
-sudo sh -c 'cat <<EOF > /var/spool/cron/crontabs/root
-
-# Edit this file to introduce tasks to be run by cron.
-#
-# Each task to run has to be defined through a single line
-# indicating with different fields when the task will be run
-# and what command to run for the task
-#
-# To define the time you can provide concrete values for
-# minute (m), hour (h), day of month (dom), month (mon),
-# and day of week (dow) or use* in these fields (for any).
-#
-# Notice that tasks will be started based on the crons system
-# daemons notion of time and timezones.
-#
-# Output of the crontab jobs (including errors) is sent through
-# email to the user the crontab file belongs to (unless redirected).
-#
-# For example, you can run a backup of all your user accounts
-# at 5 a.m every week with:
-# 0 5 * * 1 tar -zcf /var/backups/home.tgz /home/
-#
-# For more information see the manual pages of crontab(5) and cron(8)
-#
-# m h  dom mon dow   command
-# write new mycron --
-# Fetch on boot timestamp to last_cron
-#@reboot /home/pi/OC-DigitalSignage/fetch && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron > mycron
-
-*/15 * * * * /home/pi/OC-DigitalSignage/push && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron
-0 4 * * * sudo /sbin/shutdown -r now && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron
-EOF'
-sudo /etc/init.d/cron restart
-# exit out
-printf "\nWell done, young COMMANDO!!\n"
-printf "Device Update Is Now Complete\n"
-
+read -p "Restart? (y/n) " yn
+case $yn in
+    [Yy]* ) reboot;
+esac
 
 exit 0;
