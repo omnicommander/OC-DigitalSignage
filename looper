@@ -1,0 +1,13 @@
+#!/usr/bin/python3
+import os
+
+# Might be able to capture the variables from config.sh
+# by exporting them into the environment
+
+# Write the paths to the videos to a playlist file
+with open('playlist.txt', 'w') as playlist:
+    for video in os.listdir('videos'):
+        playlist.write(os.path.join('videos', video) + '\n')
+
+# Run mpv
+os.system('mpv --playlist=playlist.txt --loop-playlist=inf -fs')
