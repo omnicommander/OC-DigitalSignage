@@ -1,6 +1,7 @@
 video/
 json/
 *.log
+*.log*
 .vscode/
 last_cron
 venv
