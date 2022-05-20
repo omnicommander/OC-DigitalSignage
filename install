@@ -12,7 +12,6 @@ cd /
 source /home/pi/OC-DigitalSignage/config.sh
 
 # create necessary files and directories
-# NOTE: this does not use the config variables
 mkdir "$JSONPATH"
 mkdir "$VIDEOPATH"
 touch /home/pi/OC-DigitalSignage/{playlist.txt,fetch.log}
@@ -29,16 +28,28 @@ esac
 
 # configure crontab 
 # write directly to /var/spool/cron/crontabs/root if this doesn't work
-(crontab -u root; printf "*/15 * * * * /home/pi/OC-DigitalSignage/push && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron\n0 4 * * * sudo /sbin/shutdown -r now && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron\n") | crontab -
+new_cron = $(cat << EOF */15 * * * * /home/pi/OC-DigitalSignage/push && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron 
+0 4 * * * sudo /sbin/shutdown -r now && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron
+EOF
+)
+
+(crontab -u root; echo "$new_cron") | crontab -
 
 # start fetching when the desktop environment loads
-echo "@/home/pi/OC-DigitalSignage/fetch" >> /etc/xdg/lxsession/LXDE-pi/autostart
+autostart = $(cat <<EOF @/home/pi/OC-DigitalSignage/fetch 
+@xset s noblank
+@xset -dpms
+@xset -s off
+EOF
+)
+
+echo "$autostart" >> /etc/xdg/lxsession/LXDE-pi/autostart
 
 # update package repository
 apt-get update
 
 # install necessary packages
-apt-get install jq youtube-dl bc mpv -Y
+apt-get install -y jq youtube-dl bc mpv
 
 read -p "Restart? (y/n) " yn
 case $yn in
