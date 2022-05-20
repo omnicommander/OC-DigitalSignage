@@ -29,7 +29,7 @@ esac
 
 # configure crontab 
 # write directly to /var/spool/cron/crontabs/root if this doesn't work
-(crontab -u root; echo "*/15 * * * * /home/pi/OC-DigitalSignage/push && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron\n0 4 * * * sudo /sbin/shutdown -r now && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron\n") | crontab -
+(crontab -u root; printf "*/15 * * * * /home/pi/OC-DigitalSignage/push && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron\n0 4 * * * sudo /sbin/shutdown -r now && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron\n") | crontab -
 
 # start fetching when the desktop environment loads
 echo "@/home/pi/OC-DigitalSignage/fetch" >> /etc/xdg/lxsession/LXDE-pi/autostart
