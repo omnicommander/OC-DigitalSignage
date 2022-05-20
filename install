@@ -28,22 +28,10 @@ esac
 
 # configure crontab 
 # write directly to /var/spool/cron/crontabs/root if this doesn't work
-new_cron = $(cat << EOF */15 * * * * /home/pi/OC-DigitalSignage/push && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron 
-0 4 * * * sudo /sbin/shutdown -r now && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron
-EOF
-)
-
-(crontab -u root; echo "$new_cron") | crontab -
+(crontab -u root; echo -e "*/15 * * * * /home/pi/OC-DigitalSignage/push && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron\n0 4 * * * sudo /sbin/shutdown -r now && date +\%Y-\%m-\%d\ \%H:\%M:\%S > /home/pi/OC-DigitalSignage/last_cron") | crontab -
 
 # start fetching when the desktop environment loads
-autostart = $(cat <<EOF @/home/pi/OC-DigitalSignage/fetch 
-@xset s noblank
-@xset -dpms
-@xset -s off
-EOF
-)
-
-echo "$autostart" >> /etc/xdg/lxsession/LXDE-pi/autostart
+echo -e "@/home/pi/OC-DigitalSignage/fetch\n@xset s noblank\n@xset -dpms\n@xset -s off" >> /etc/xdg/lxsession/LXDE-pi/autostart
 
 # update package repository
 apt-get update
