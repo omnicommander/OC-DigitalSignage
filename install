@@ -17,6 +17,9 @@ mkdir "$VIDEOPATH"
 touch /home/pi/OC-DigitalSignage/{playlist.txt,fetch.log}
 touch "$JSONPATH/file.json"
 
+# this file needs to exist for some reason
+touch /home/pi/OC-DigitalSignage/last_cron
+
 # make sure the pi user owns all the new files
 chown -R pi:pi /home/pi/OC-DigitalSignage/
 

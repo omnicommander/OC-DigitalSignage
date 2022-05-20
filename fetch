@@ -31,6 +31,10 @@ while [ 1 ]
         if [ "$INTERNET_STATUS" = "UP" ]; then
             printf "$TMESTAMP INTERNET DOWN $TIMESTAMP \n" >> $fetchLog;
             INTERNET_STATUS="DOWN"
+
+            # Just run looper if there is no internet
+            /home/pi/OC-DigitalSignage/looper
+            break;
         fi
     fi
     sleep 1
