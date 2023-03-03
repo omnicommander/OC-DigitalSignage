@@ -8,7 +8,7 @@
 # Load our vairables to be used --
 source /home/pi/OC-DigitalSignage/config.sh
 
-printf "$TIMESTAMP Running Fetch Application - v1.3 by OMNICOMMANDER\n" >> $fetchLog
+printf "$TIMESTAMP Running Fetch Application - v1.4 by OMNICOMMANDER\n" >> $fetchLog
 
 # create directories, if not already there
 mkdir -p $VIDEOPATH
@@ -94,10 +94,10 @@ for i in "${!diff[@]}"
   do
 
         # download our video
-        echo "$TIMESTAMP executed: youtube-dl: ${start}_${PI_UID}_${diff[$i]}.mp4" >> $fetchLog
+        echo "$TIMESTAMP executed: yt-dlp: ${start}_${PI_UID}_${diff[$i]}.mp4" >> $fetchLog
 
         # --no-warnings --ignore-errors
-        /usr/bin/youtube-dl --no-mtime --format mp4  --ignore-config --prefer-ffmpeg https://www.youtube.com/watch?v=${diff[$i]} -o $VIDEOPATH/${start}_${PI_UID}-${diff[$i]}.mp4
+        /usr/bin/yt-dlp --no-mtime --format mp4  --ignore-config --prefer-ffmpeg https://www.youtube.com/watch?v=${diff[$i]} -o $VIDEOPATH/${start}_${PI_UID}-${diff[$i]}.mp4
 
         # increment counter
         start=$(expr $start + 1)

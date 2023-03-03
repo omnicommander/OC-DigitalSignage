@@ -40,7 +40,7 @@ echo -e "@/home/pi/OC-DigitalSignage/fetch\n@xset s noblank\n@xset -dpms\n@xset 
 apt-get update
 
 # install necessary packages
-apt-get install -y jq youtube-dl bc mpv
+apt-get install -y jq yt-dlp bc mpv
 
 read -p "Restart? (y/n) " yn
 case $yn in
